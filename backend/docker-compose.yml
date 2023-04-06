@@ -1,0 +1,35 @@
+version: '3'
+
+services:
+  postgres:
+    image: postgres
+    container_name: todo-postgres-container
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "postgres"
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    restart: always
+    networks:
+      - todoapp
+
+  app:
+    build: .
+    container_name: todo-api-container
+    entrypoint: sh -c "dockerize -wait tcp://postgres:5432 -timeout 30s && npm run start:dev"
+    volumes:
+      - .:/home/node/app
+      - /home/node/app/node_modules
+    ports:
+      - 3333:3333
+    networks:
+      - todoapp
+    depends_on:
+      - postgres
+
+networks:
+  todoapp:
+    driver: bridge
